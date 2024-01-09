@@ -3,3 +3,7 @@
 
 ### Use 使用
 https://github.com/mrabit/aliyundriveDailyCheck/blob/master/README.md
+
+```shell
+ql repo https://github.com/chrisuhg/aliyundriveDailyCheckWithTaskReward.git "autoSignin" "" "qlApi"
+```
