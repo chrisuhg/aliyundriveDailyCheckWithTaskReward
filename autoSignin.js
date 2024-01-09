@@ -62,46 +62,13 @@ function getTaskList(access_token) {
     });
 }
 
-// 获取任务奖励
-async function getTaskReward(access_token, signInDay) {
-  let data = JSON.stringify({
-    "signInDay": `${signInDay}`
-  });
-
-  return axios(rewardURL, {
-    method: 'POST',
-    url: taskrewardURL,
-    data: data,
-    headers: {
-      Authorization: access_token,
-      'Content-Type': 'application/json'
-    }
-  })
-    .then(d => d.data)
-    .then(json => {
-      if (!json.success) {
-        return Promise.reject(json.message);
-      }
-      return json.result;
-    })
-    .catch((error) => {
-      if (error.response && error.response.status === 400 && error.response.data.code === 'RepeatExchange') {
-        return error.response.data;
-      } else {
-        // Handle other errors
-        console.error('Error:', error.message);
-        return Promise.reject(error.message);
-      }
-    });
-}
-
 // 签到并搜索可领取的任务奖励
 function sign_in(access_token, remarks) {
     const sendMessage = [remarks];
     return axios(signinURL, {
         method: 'POST',
         data: {
-        isReward: false
+            isReward: false
         },
         headers: {
         Authorization: access_token,
@@ -116,18 +83,11 @@ function sign_in(access_token, remarks) {
         }
 
         // 当天任务列表
-        const taskList = await getTaskList()
+        const taskList = await getTaskList(access_token)
 
         sendMessage.push(`${taskList.year}年 ${taskList.month}${taskList.day}日 签到成功！\n「${taskList.blessing} - ${taskList.subtitle}」\n`);
 
         sendMessage.push(`本月累计签到 ${json.result.signInCount} 天`);
-
-        // 未完成列表
-        const unfinisheds = taskList.rewards.filter(v => v.status === 'unfinished');
-        console.log('未完成任务：')
-
-        // 已领取奖励列表
-        const verificationeds = taskList.rewards.filter(v => v.status === 'verification');
 
         // 日签奖励列表
         const dailyRewards = taskList.rewards.filter(v => v.type === 'dailySignIn');
@@ -167,7 +127,7 @@ function sign_in(access_token, remarks) {
                 }
             }else if( taskReward.status === 'verification' ){
                 sendMessage.push(
-                    `今日签到获得${taskReward.name || ''}`
+                    `今日任务获得${taskReward.name || ''}`
                 );
             }else if ( taskReward.status === 'unfinished' ){
                 sendMessage.push(
@@ -176,11 +136,17 @@ function sign_in(access_token, remarks) {
             }
         }
 
-        return sendMessage.join(', ');
+        // 其他未完成任务
+        const unfinisheds = taskList.rewards.filter(v => v.status === 'unfinished' && v.type !== 'dailySignIn' && v.type !== 'dailyTask');
+        for ( unfinished of unfinisheds ){
+            console.log(`其他未完成任务：[${unfinished.name}]${unfinished.remind}`)
+        }
+
+        return sendMessage.join('\n');
     })
     .catch(e => {
         sendMessage.push('签到失败');
-        sendMessage.push(e.message);
+        sendMessage.push(e.response.data.message);
         return Promise.reject(sendMessage.join(', '));
     });
 }
@@ -202,6 +168,42 @@ function getReward(access_token, signInDay) {
       }
 
       return json.result;
+    });
+}
+
+// 任务列表
+
+
+// 获取任务奖励
+async function getTaskReward(access_token, signInDay) {
+  let data = JSON.stringify({
+    "signInDay": `${signInDay}`
+  });
+
+  return axios(rewardURL, {
+    method: 'POST',
+    url: taskrewardURL,
+    data: data,
+    headers: {
+      Authorization: access_token,
+      'Content-Type': 'application/json'
+    }
+  })
+    .then(d => d.data)
+    .then(json => {
+      if (!json.success) {
+        return Promise.reject(json.message);
+      }
+      return json.result;
+    })
+    .catch((error) => {
+      if (error.response && error.response.status === 400 && error.response.data.code === 'RepeatExchange') {
+        return error.response.data;
+      } else {
+        // Handle other errors
+        console.error('Error:', error.message);
+        return Promise.reject(error.message);
+      }
     });
 }
 
