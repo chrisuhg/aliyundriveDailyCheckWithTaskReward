@@ -93,7 +93,7 @@ function sign_in(access_token, remarks) {
         const dailyRewards = taskList.rewards.filter(v => v.type === 'dailySignIn');
         for await (dailyReward of dailyRewards) {
             if ( dailyReward.status === 'finished' ) {
-                const signInDay = taskList.result.signInDay;
+                const signInDay = taskList.signInDay;
                 try {
                     const daliyrewardInfo = await getReward(access_token, signInDay);
                     sendMessage.push(
@@ -116,7 +116,8 @@ function sign_in(access_token, remarks) {
         for await (taskReward of taskRewards){
             if( taskReward.status === 'finished' ){
                 try{
-                    const taskrewardInfo = await getTaskReward
+                    const signInDay = taskList.signInDay;
+                    const taskrewardInfo = await getTaskReward( access_token, signInDay )
                     sendMessage.push(
                         `第${signInDay}天每日任务奖励领取成功: 获得${taskrewardInfo.name || ''}${
                             taskrewardInfo.notice || ''
@@ -146,7 +147,7 @@ function sign_in(access_token, remarks) {
     })
     .catch(e => {
         sendMessage.push('签到失败');
-        sendMessage.push(e.response.data.message);
+        sendMessage.push(e.message);
         return Promise.reject(sendMessage.join(', '));
     });
 }
@@ -175,7 +176,7 @@ function getReward(access_token, signInDay) {
 
 
 // 获取任务奖励
-async function getTaskReward(access_token, signInDay) {
+function getTaskReward(access_token, signInDay) {
   let data = JSON.stringify({
     "signInDay": `${signInDay}`
   });
