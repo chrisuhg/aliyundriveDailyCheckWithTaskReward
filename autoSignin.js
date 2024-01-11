@@ -10,7 +10,7 @@ const updateAccesssTokenURL = 'https://auth.aliyundrive.com/v2/account/token';
 const signinURL = 'https://member.aliyundrive.com/v1/activity/sign_in_list?_rx-s=mobile';
 const taskInfoURL = 'https://member.aliyundrive.com/v2/activity/sign_in_info';
 const rewardURL = 'https://member.aliyundrive.com/v1/activity/sign_in_reward?_rx-s=mobile';
-const taskrewardURL = 'https://member.aliyundrive.com/v1/activity/sign_in_task_reward?_rx-s=mobile';
+const taskrewardURL = 'https://member.aliyundrive.com/v2/activity/sign_in_task_reward?_rx-s=mobile';
 
 // 使用 refresh_token 更新 access_token
 function updateAccesssToken(queryBody, remarks) {
@@ -65,6 +65,7 @@ function getTaskList(access_token) {
 // 签到并搜索可领取的任务奖励
 function sign_in(access_token, remarks) {
     const sendMessage = [remarks];
+//    console.log(access_token)
     return axios(signinURL, {
         method: 'POST',
         data: {
@@ -117,9 +118,9 @@ function sign_in(access_token, remarks) {
                 if( taskReward.status === 'finished' ){
                     try{
                         const signInDay = taskList.signInDay;
-                        const taskrewardInfo = await getTaskReward( access_token, signInDay )
+                        const taskrewardInfo = await getTaskReward(access_token, signInDay)
                         sendMessage.push(
-                            `第${signInDay}天每日任务奖励领取成功: 获得${taskrewardInfo.name || ''}${
+                            `每日任务奖励领取成功: 获得${taskrewardInfo.name || ''}${
                                 taskrewardInfo.notice || ''
                             }`
                         );
@@ -178,7 +179,7 @@ function getTaskReward(access_token, signInDay) {
         "signInDay": `${signInDay}`
     });
 
-    return axios(rewardURL, {
+    return axios(taskrewardURL, {
         method: 'POST',
         url: taskrewardURL,
         data: data,
