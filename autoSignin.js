@@ -32,6 +32,8 @@ function updateAccesssToken(queryBody, remarks) {
                 else errorMessage.push(message);
                 return Promise.reject(errorMessage.join(', '));
             }
+            console.log(refresh_token)
+            console.log(access_token)
             return { nick_name, refresh_token, access_token };
         })
         .catch(e => {
